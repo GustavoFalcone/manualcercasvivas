@@ -1,10 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  UPSELL_PROGRESS_DONE_KEY,
-  UPSELL_PROGRESS_DURATION_MS,
-  UPSELL_PROGRESS_START_KEY,
-  UPSELL_PROGRESS_VALUE_KEY,
-} from '../config/progress';
+import { UPSELL_PROGRESS_DURATION_MS } from '../config/progress';
 import { LeafIcon } from './Icons';
 
 type Props = {
@@ -12,36 +7,17 @@ type Props = {
   text: string;
 };
 
-function readStoredStart() {
-  try {
-    const stored = Number(sessionStorage.getItem(UPSELL_PROGRESS_START_KEY));
-    if (Number.isFinite(stored) && stored > 0) return stored;
-    const now = Date.now();
-    sessionStorage.setItem(UPSELL_PROGRESS_START_KEY, String(now));
-    return now;
-  } catch {
-    return Date.now();
-  }
-}
-
 export function StatusStrip({ label, text }: Props) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const start = readStoredStart();
+    // Cada entrada na página inicia uma nova contagem de dois minutos.
+    const start = Date.now();
     let frame = 0;
 
     const update = () => {
       const next = Math.min(100, Math.floor(((Date.now() - start) / UPSELL_PROGRESS_DURATION_MS) * 100));
       setProgress((current) => current === next ? current : next);
-
-      try {
-        sessionStorage.setItem(UPSELL_PROGRESS_VALUE_KEY, String(next));
-        if (next === 100) sessionStorage.setItem(UPSELL_PROGRESS_DONE_KEY, 'true');
-      } catch {
-        // A barra continua funcionando mesmo quando o armazenamento está indisponível.
-      }
-
       if (next < 100) frame = requestAnimationFrame(update);
     };
 
